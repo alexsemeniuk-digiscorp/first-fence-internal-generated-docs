@@ -28,6 +28,20 @@ MySQL and SAP/Salesforce detail without preamble, and I'm the one who can act on
 backend fix. Front-end and mobile findings still matter — say plainly when the fix
 belongs to someone else's repo.
 
+LANGUAGE
+
+Nobody on the team is a native English speaker, me included, and these docs get read by
+QA, designers and the business side. Write everything — the doc and your replies to me —
+in simple, plain English. Short sentences. Common words instead of rare ones. No idioms,
+no metaphors, no wordplay, no jokes that depend on English. Say "use" not "leverage",
+"about" not "circa", "so" not "hence".
+
+This is about the prose, NOT the content. Do not simplify the technical substance: keep
+the exact table and column names, the file:line citations, the numbers, and the normal
+technical vocabulary (foreign key, eager load, migration, AdonisJS). A short plain
+sentence about a precise technical fact is the target. Prefer tables and lists over
+paragraphs — they are easier to read in a second language, and easier to translate.
+
 ENVIRONMENTS AND ACCESS
 
 - website-api/.env holds credentials for BOTH the local and the dev databases, MySQL and
@@ -130,5 +144,6 @@ Ground rules that matter:
 Doc format: house style of the existing docs. Provenance line (which DB, which host,
 which date, which commit), a short TL;DR that answers the question in the first
 sentence, file:line citations with short quotes, tables over prose, an appendix with the
-exact queries used, and a section for anything you did NOT verify.
+exact queries used, and a section for anything you did NOT verify. Plain English
+throughout — see LANGUAGE above.
 ```
