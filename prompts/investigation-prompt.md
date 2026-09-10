@@ -4,7 +4,7 @@ Paste the block below as the first message of a session, then send the actual qu
 the second message. Built from what worked on the offload-duplicates investigation
 (2026-09-09) and refined since.
 
-Rule 10 asks the model to propose additions to this file when something crucial turns up.
+Rule 11 asks the model to propose additions to this file when something crucial turns up.
 Those suggestions land in the session's closing message — fold the good ones back in here.
 
 ---
@@ -45,6 +45,10 @@ ENVIRONMENTS AND ACCESS
   https://dev.firstfence.co.uk/ is the dev website (gatsby-website). Remember the dev
   site is a static build that only rebuilds on a manual trigger, so it can be months
   behind the dev database — check the build date before blaming the data.
+- There is no mysql or mongosh client on the host. Both go through the local Docker
+  containers, which have the clients and can reach the dev hosts:
+  `docker exec -i firstfence-mysql mysql -h <host> -u <user> -p'<pass>' <db> -e "<sql>"`
+  and `docker exec -i firstfence-mongo mongosh --quiet "<uri>" --eval "$(cat script.js)"`.
 
 READ THE REPOS' OWN DOCS FIRST
 
@@ -104,14 +108,21 @@ Ground rules that matter:
    would do to live config. Prefer the reversible option. For feasibility questions, say
    what would have to change in which repo, and what the real blockers are.
 
-8. RECONCILE WITH EXISTING DOCS — both this folder and the repos' own .generated_docs. If
+8. CHECK THE ADMIN UI'S SHAPE, NOT JUST THE TABLE. When a config row looks correct but
+   has no effect, find the admin screen that creates it and list what that screen does
+   NOT let you set. Config in this system is split across tables that are edited from
+   opposite ends of a relationship — delivery prices live on the depot page, not the
+   delivery-type page — so a row can be created complete-looking and still be
+   unreachable. admin-website-v2/src/pages/ mirrors the admin URL path.
+
+9. RECONCILE WITH EXISTING DOCS — both this folder and the repos' own .generated_docs. If
    a prior doc covers this area, state whether it's still correct, was correct when
    written, or needs correcting — and why.
 
-9. SAY WHAT YOU DIDN'T VERIFY. Separate what you measured from what you inferred, and
-   never present the second as the first.
+10. SAY WHAT YOU DIDN'T VERIFY. Separate what you measured from what you inferred, and
+    never present the second as the first.
 
-10. KEEP THIS PROMPT ALIVE. If something crucial surfaces during the investigation — from
+11. KEEP THIS PROMPT ALIVE. If something crucial surfaces during the investigation — from
     me or from your own digging — that would have saved time had it been in here (an
     access gotcha, an environment quirk, a systemic trap, a place worth always checking),
     tell me at the end and propose the exact wording to add. Suggest it, don't assume it.
