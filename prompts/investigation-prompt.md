@@ -63,6 +63,13 @@ ENVIRONMENTS AND ACCESS
   containers, which have the clients and can reach the dev hosts:
   `docker exec -i firstfence-mysql mysql -h <host> -u <user> -p'<pass>' <db> -e "<sql>"`
   and `docker exec -i firstfence-mongo mongosh --quiet "<uri>" --eval "$(cat script.js)"`.
+- The dev CDN Mongo has audit collections — `productlogs`, `productvariantlogs`,
+  `categorylogs`, `cmspagelogs`. Each row holds a full `previous` and `current` snapshot
+  plus the editing `user` id, so they can date a content change to the minute and show
+  who made it. Check their date range first: product logging was commented out in
+  `cdn-graphql-v2/src/resolvers/product.js` on 2025-12-17 (`d66790a`), so `productlogs`
+  stops dead there. A field missing from every snapshot usually means the admin form did
+  not have that input yet, not that nobody set it.
 
 READ THE REPOS' OWN DOCS FIRST
 
