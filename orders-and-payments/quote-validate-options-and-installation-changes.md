@@ -345,10 +345,24 @@ Which one is right is a **business decision** (M7 in the epic-5 docs says "the c
 new price"). **Trap:** do not put the guard inside the shared `BasketQuoteController.convertToOrder`.
 That is also the website's public route, which is on prod.
 
-**Not in the same MR:** the 0/1-surcharge false alarm (§4.2). `installation.js` is also used by
-carts, emails and admin, and has not changed since 2022. Dev impact today is zero: of 42 types,
-32 have 8 surcharges, 7 have 7, 2 have 6, and 1 ("Unknown") has 0 and is used by no published
-product. Of all **285** quote lines with installation on dev, **0** are false alarms.
+**Fix 3, later and in its own MR — the 0/1-surcharge false alarm (§4.2).** It is a real backend
+bug, but nothing is hit by it today:
+
+| Measure | Result |
+|---|---|
+| Installation types by surcharge count, dev | 32 have 8, 7 have 7, 2 have 6, 1 ("Unknown") has 0. **None has exactly 1.** |
+| Same, local production dump (newest product edit 2026-06-17) | Identical. "Unknown" is used by 0 published products in both. |
+| All **7,873** stored `installation_types` rows on dev (carts, quotes, orders) | **7,847** resolve. **26** fail, and none because of this bug: 25 are 2022 rows saved before their types got an 8th surcharge (a real config change), 1 has `mongo_id = '1'` (2026-08-25). |
+| Quote lines with installation on dev | 285; **0** false alarms. |
+
+So the bug only starts to matter the day someone creates a type with exactly one surcharge.
+
+| Part | Change | Trap |
+|---|---|---|
+| Write path | `installation.js:24`: `surcharges.length > 1` → `> 0` | Safe now. No existing row was saved wrong (no 1-surcharge type exists), so there is nothing to backfill. |
+| Read path | `getInstallationSurcharges` (`:117-129`) needs `surchargeIds.length >= 1`, so a 0-surcharge type never resolves | Also used by carts (`CartController.js:80-85` swaps in the product's default type from Mongo when it fails), order emails and admin. Test those paths too. Low value today: the only 0-surcharge type is unused. |
+
+`installation.js` has not changed since 2022 (`494d0cc`). Keep this out of the Fix 1 / Fix 2 MR.
 
 ### Mobile — `ff-uk-mobile` (not ours)
 
@@ -540,6 +554,19 @@ db.installationtypes.find({},{surcharges:1}).forEach(t => /* count by surcharges
 db.products.countDocuments({status:'PUBLISHED', installationType:{$nin:[null,'']}})   // 658
 db.productlogs.find({'current._id':ObjectId('5f16f3be8b49590d02dea1f6')})            // 2 rows, 2025-11-25
 ```
+
+**Q8 — every stored installation row on dev vs Mongo surcharge count (MySQL → Mongo)**
+
+```sql
+SELECT CAST(it.mongo_id AS BINARY) type_id,
+       (SELECT COUNT(*) FROM installation_surcharges s WHERE s.installation_type_ID=it.id) n_sql,
+       COUNT(*) n_lines, MAX(it.created_at)
+FROM installation_types it GROUP BY 1,2;   -- 52 groups, 7,873 rows
+```
+
+For each group: type found and `surcharges.length >= 1 && === n_sql` → resolves. Result: 7,847
+resolve, 26 fail (listed in §7, Fix 3). The same surcharge-count distribution was read from the
+local production dump (`cdn` db, root pair via `docker exec firstfence-mongo`).
 
 **Blast radius of the shared "Palisade Fencing" type (MySQL)**
 
