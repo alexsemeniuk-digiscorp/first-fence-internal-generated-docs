@@ -66,10 +66,26 @@ ENVIRONMENTS AND ACCESS
 - The dev CDN Mongo has audit collections — `productlogs`, `productvariantlogs`,
   `categorylogs`, `cmspagelogs`. Each row holds a full `previous` and `current` snapshot
   plus the editing `user` id, so they can date a content change to the minute and show
-  who made it. Check their date range first: product logging was commented out in
-  `cdn-graphql-v2/src/resolvers/product.js` on 2025-12-17 (`d66790a`), so `productlogs`
-  stops dead there. A field missing from every snapshot usually means the admin form did
-  not have that input yet, not that nobody set it.
+  who made it. Check their date range first: `d66790a` (2025-12-17) commented out the
+  logging for all four (product, variant, category and cms-page resolvers in
+  cdn-graphql-v2), so every one of them stops dead there. Installation types and
+  surcharges were never logged. To date a newer content edit, use the document's own
+  `updated` field — Mongo documents use `created`/`updated`, not `createdAt`/`updatedAt`.
+  A field missing from every snapshot usually means the admin form did not have that
+  input yet, not that nobody set it.
+- Every admin delete in cdn-graphql-v2 is a HARD delete (`remove()`): products, variants,
+  installation types, surcharges. None of them clean up references to the deleted
+  document, so other documents keep ids that point at nothing. The `deleted` fields you
+  see in Mongo are old data — website-api reads them, but the admin never writes them.
+  Do not treat `deleted: false` as proof that something is live.
+- Branches and deploys: website-api `master` deploys to prod, `dev-docker` deploys to
+  dev. Mobile work lives on `mobile-app`, which is merged into `dev-docker`.
+  `git show origin/master:<file>` tells you whether code is on prod without touching
+  prod. The shell cannot fetch from GitLab (no credentials), so check how old the local
+  refs are with the file time of `.git/FETCH_HEAD` and state it.
+- Time zones: dev MySQL stores datetimes in UTC. Screenshot file names carry the
+  asker's local time (Ukraine: UTC+3 in summer, UTC+2 in winter). Matching the two is
+  often the fastest way to date an admin edit.
 
 READ THE REPOS' OWN DOCS FIRST
 
