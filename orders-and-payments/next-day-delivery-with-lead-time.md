@@ -295,7 +295,7 @@ the Same Day price (`delivery-cutoffs.js:97-113`). That is expected and not rela
 | 2021-04-29 | api `93dc188` "delivery system update", web `ced93efcf` | Today's `date.leadTime` calendar flags and the disabled calendar tiles. |
 | 2021-05-13 | api `695c08e` | Glasgow collection blocked for lead-time products with a Finish option. |
 | 2022-05-12 | api `05c47c9` "remove leadtime required" | Cart lines no longer need a lead time to be valid. |
-| 2025-07-30 | web `41cfee55e` | 10pm Next Day cut-off note. It is about time of day, not lead time. |
+| 2025-07-30 | web `41cfee55e` | Next Day cut-off note at **2:30pm**. It moved to 10pm on 2026-08-07 (web `8ca1a50c8`, api `150ef7e`). It is about time of day, not lead time. |
 | 2026-09-17 | api `18ae389` (sc-1539) | 10am Same Day and 3pm Next Day cut-offs. About time of day, not lead time. |
 | 2026-09-26 | app `10077b3` | App dates count working days **and** lead time. |
 | 2026-09-30 | api `2219d03` (FIR-266) | App expected date adds lead time. Not on `master`. |
@@ -422,7 +422,9 @@ changes. A product that comes back into stock stays blocked. Not recommended.
 1. **Three different Next Day cut-off times.** The Next Day `details` text in `delivery_types` says
    **"before 2.30pm"**. The website warns after **22:00**
    (`src/features/checkout/sidebar/delivery/delivery.js:39-44`). The app uses **22:00** too. The
-   backend switches Next Day to rush pricing at **15:00** (`delivery-cutoffs.js:15`).
+   backend switches Next Day to rush pricing at **15:00** (`delivery-cutoffs.js:15`). The 10pm
+   rule was agreed as "10pm (excluding Scotland)", and the Scotland part was never built. See
+   [`scotland-delivery-cut-offs-and-dates.md`](./scotland-delivery-cut-offs-and-dates.md).
 2. **App extras use the base lead time.** Extra/upsell lines in the app use the linked product's
    base `leadTimeDuration` with no option or `dateDueBackInStock` adjustment
    (`ff-uk-mobile/src/features/product/utils/basketLines.ts:150`).
